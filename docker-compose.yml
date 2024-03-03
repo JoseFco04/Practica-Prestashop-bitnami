@@ -1,25 +1,26 @@
-version: '3'
+version: '3.3'
 
 services:
   prestashop:
-    image: bitnami/prestashop:latest
+    image: bitnami/prestashop:1.7
     environment:
-      - PS_INSTALL_AUTO=${PS_INSTALL_AUTO:-1}
-      - DB_SERVER=${DB_SERVER:-mysql}
-      - DB_USER=${MYSQL_USER}
-      - DB_PASSWD=${MYSQL_PASSWORD}
-      - DB_NAME=${MYSQL_DATABASE}
-      - PS_DOMAIN=${PS_DOMAIN}
-      - PS_ENABLE_SSL=${PS_ENABLE_SSL:-1}
-      - PS_FOLDER_INSTALL=${PS_FOLDER_INSTALL:-install-dev}
-      - PS_FOLDER_ADMIN=${PS_FOLDER_ADMIN:-admin-dev}
-      - PS_COUNTRY=${PS_COUNTRY:-es}
-      - PS_LANGUAGE=${PS_LANGUAGE:-es}
-      - ADMIN_MAIL=${ADMIN_MAIL}
-      - ADMIN_PASSWD=${ADMIN_PASSWD}
+      - PRESTASHOP_FIRST_NAME=${PRESTASHOP_FIRST_NAME}
+      - PRESTASHOP_LAST_NAME=${PRESTASHOP_LAST_NAME}
+      - PRESTASHOP_PASSWORD=${PRESTASHOP_PASSWORD}
+      - PRESTASHOP_HOST=${DNS_DOMAIN_SECURE}
+      - PRESTASHOP_EMAIL=${PRESTASHOP_EMAIL}
+      - PRESTASHOP_COUNTRY=${PRESTASHOP_COUNTRY}
+      - PRESTASHOP_DATABASE_HOST=mysql
+      - PRESTASHOP_DATABASE_NAME=${PRESTASHOP_DATABASE_NAME}
+      - ALLOW_EMPTY_PASSWORD=yes
+      - PRESTASHOP_DATABASE_USER=${PRESTASHOP_DATABASE_USER}
+      - PRESTASHOP_DATABASE_PASSWORD=${PRESTASHOP_DATABASE_PASSWORD}
+      - PRESTASHOP_DATABASE_PREFIX=${PRESTASHOP_DATABASE_PREFIX}
+      - PRESTASHOP_ENABLE_SSL=1
+      - PRESTASHOP_ENABLE_HTTPS=yes
     restart: always
     volumes:
-      - prestashop_data:/var/www/html
+      - prestashop_data:/bitnami/prestashop
     depends_on:
       - mysql
     networks:
@@ -28,11 +29,13 @@ services:
   
   mysql:
     image: mysql:8.0
+    ports:
+      - 3306:3306
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${PRESTASHOP_DATABASE_NAME}
+      - MYSQL_USER=${PRESTASHOP_DATABASE_USER}
+      - MYSQL_PASSWORD=${PRESTASHOP_DATABASE_PASSWORD}
     restart: always
     volumes:
       - mysql_data:/var/lib/mysql
@@ -42,7 +45,7 @@ services:
       - seccomp:unconfined
 
   phpmyadmin:
-    image: phpmyadmin
+    image: phpmyadmin:5
     restart: always
     ports:
       - 8080:80
@@ -60,7 +63,8 @@ services:
       - 80:80
       - 443:443
     environment:
-      DOMAINS: 'localhost -> http://prestashop-bitnami.ddns.net:80 #local'
+      DOMAINS: '${DNS_DOMAIN} -> http://prestashop:8080'
+      STAGE: 'staging' 
     volumes:
       - ssl_certs_data:/var/lib/https-portal
     depends_on:
