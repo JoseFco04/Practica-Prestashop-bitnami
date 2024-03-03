@@ -63,7 +63,7 @@ services:
       - 80:80
       - 443:443
     environment:
-      DOMAINS: '${DNS_DOMAIN} -> http://prestashop:8080'
+      DOMAINS: '${DNS_DOMAIN_SECURE} -> http://prestashop:8080'
       STAGE: 'staging' 
     volumes:
       - ssl_certs_data:/var/lib/https-portal
